@@ -1,0 +1,49 @@
+/* ============================================================
+   TRIVERSE AI — Print stylesheet (itinerary export)
+   ============================================================ */
+
+@media print {
+  .side,
+  .dash-top,
+  .no-print,
+  .toasts,
+  .day-tabs,
+  .tl-thumb,
+  .route-card,
+  .summary-card {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .dash-main {
+    margin: 0 !important;
+  }
+
+  .dash-content {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .itin-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tl-item {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .card,
+  .detail-card,
+  .log-card {
+    box-shadow: none !important;
+  }
+
+  a {
+    text-decoration: none !important;
+  }
+}
