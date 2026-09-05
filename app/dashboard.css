@@ -1833,13 +1833,24 @@
   }
 
   .dash-top {
-    padding: 0 16px;
-    gap: 10px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  /* Let the search field take the full free width: drop the spacer and
+     allow the page title to ellipsize instead of squeezing the input. */
+  .dash-top .spacer {
+    display: none;
+  }
+
+  .dash-top .crumb {
+    min-width: 0;
   }
 
   .dash-search {
     width: auto;
     flex: 1;
+    min-width: 0;
   }
 
   .dash-search .search-pop {
