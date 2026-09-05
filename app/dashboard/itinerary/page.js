@@ -125,7 +125,7 @@ function Itinerary() {
         <div className="big-ic">
           <Icon name="calendar" size={28} />
         </div>
-        <h3>No itinerary yet</h3>
+        <h3>No travel plan yet</h3>
         <p>Plan a trip and Atlas Agent will lay out every day for you.</p>
         <Link href="/trip-planner" className="btn btn-purple btn-lg">
           <Icon name="sparkles" size={17} /> Plan a trip
@@ -161,7 +161,7 @@ function Itinerary() {
       <div className="page-head no-print">
         <div>
           <span className="kicker">
-            <Icon name="calendar" size={14} /> DETAILED ITINERARY
+            <Icon name="calendar" size={14} /> DETAILED TRAVEL PLAN
           </span>
           <h1>{trip.dest.city} Explorer</h1>
           <p className="sub">

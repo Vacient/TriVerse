@@ -111,7 +111,7 @@ function PlanExperience() {
             { title: "Searching flights with Atlas", detail: "Querying live route inventory" },
             { title: "Comparing available options", detail: "Filtering by direct flights & minimal layovers" },
             { title: "Finding accommodation", detail: "Scoring stays against your preferences" },
-            { title: "Building your itinerary", detail: "Structuring days around your signals" },
+            { title: "Building your travel plan", detail: "Structuring days around your signals" },
             { title: "Optimizing your budget", detail: "Balancing experiences with cost constraints" },
             { title: "Checking trip feasibility", detail: "Final budget validation" },
           ],
@@ -185,7 +185,7 @@ function PlanExperience() {
       "Searching flights with Atlas",
       "Comparing available options",
       "Finding accommodation",
-      "Building your itinerary",
+      "Building your travel plan",
       "Optimizing your budget",
       "Checking trip feasibility",
     ];
@@ -523,7 +523,7 @@ function PlanExperience() {
                   </div>
                   <h2>Your {dest.city} trip is ready</h2>
                   <p>
-                    {trip.days}-day itinerary structured around{" "}
+                    {trip.days}-day travel plan structured around{" "}
                     {trip.preferences.slice(0, 2).join(" & ")} with a{" "}
                     {money(trip.forecast)} forecast against your {money(trip.budget)} budget.
                   </p>

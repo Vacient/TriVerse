@@ -82,6 +82,9 @@ export default function HomePage() {
                     </span>
                   </button>
                 ))}
+                {matches.length === 0 && (
+                  <div className="search-pop-empty">No destinations match your search</div>
+                )}
               </div>
             )}
           </div>
@@ -124,7 +127,7 @@ export default function HomePage() {
             </h1>
             <p className="hero-sub">
               Tell us where you want to go, your budget, and what you love — our AI
-              handles flights, hotels, and a day-by-day itinerary. No spreadsheets, no stress.
+              handles flights, hotels, and a day-by-day travel plan. No spreadsheets, no stress.
             </p>
             <div className="feature-tags">
               <span className="chip">
@@ -134,7 +137,7 @@ export default function HomePage() {
                 <Icon name="graph" size={15} /> Stays on Budget
               </span>
               <span className="chip">
-                <Icon name="calendar" size={15} /> Daily Itinerary
+                <Icon name="calendar" size={15} /> Daily Travel Plan
               </span>
               <span className="chip">
                 <Icon name="pin" size={15} /> Trip Protection
@@ -153,7 +156,7 @@ export default function HomePage() {
       <section className="how" id="how">
         <div className="container">
           <h2>How it works</h2>
-          <p className="how-sub">Three easy steps from idea to itinerary.</p>
+          <p className="how-sub">Three easy steps from idea to travel plan.</p>
           <div className="how-grid">
             <div className="how-card">
               <div className="n">1</div>

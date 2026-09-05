@@ -157,6 +157,9 @@ function TripPlanner() {
                     </span>
                   </button>
                 ))}
+                {matches.length === 0 && (
+                  <div className="search-pop-empty">No destinations match your search</div>
+                )}
               </div>
             )}
           </div>
@@ -199,7 +202,7 @@ function TripPlanner() {
             </h1>
             <p className="planner-sub">
               Tell us where you want to go, your budget, and what you love — our AI
-              handles flights, hotels, and a day-by-day itinerary. No spreadsheets, no stress.
+              handles flights, hotels, and a day-by-day travel plan. No spreadsheets, no stress.
             </p>
           </div>
 

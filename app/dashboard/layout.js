@@ -11,7 +11,7 @@ const CRUMBS = {
   "/dashboard/overview": "Overview",
   "/dashboard/trips": "My Trips",
   "/dashboard/budget": "Budget",
-  "/dashboard/itinerary": "Itinerary",
+  "/dashboard/itinerary": "Travel Plan",
   "/dashboard/agent": "Agent Activity",
   "/dashboard/report": "Trip Report",
   "/dashboard/settings": "Settings",

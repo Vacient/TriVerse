@@ -393,7 +393,7 @@ function Settings() {
                 <Icon name="check" size={15} strokeWidth={3} />
               </span>
               <span>
-                <b>Live tracking</b> — disruption simulation adapts the itinerary for $0 net
+                <b>Live tracking</b> — disruption simulation adapts the travel plan for $0 net
                 impact
               </span>
             </div>

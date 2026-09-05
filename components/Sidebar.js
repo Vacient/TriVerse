@@ -11,7 +11,7 @@ const NAV = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
   { href: "/dashboard/trips", label: "My Trips", icon: "compass" },
   { href: "/dashboard/budget", label: "Budget", icon: "wallet" },
-  { href: "/dashboard/itinerary", label: "Itinerary", icon: "calendar" },
+  { href: "/dashboard/itinerary", label: "Travel Plan", icon: "calendar" },
   { href: "/dashboard/agent", label: "Agent Activity", icon: "bot" },
   { href: "/dashboard/settings", label: "Settings", icon: "gear" },
 ];

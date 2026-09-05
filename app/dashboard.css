@@ -930,7 +930,7 @@
   color: var(--ink-2);
 }
 
-/* ---------- Itinerary page ---------- */
+/* ---------- Travel plan page ---------- */
 .day-tabs {
   display: flex;
   gap: 8px;

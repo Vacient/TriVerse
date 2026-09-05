@@ -170,7 +170,7 @@ function Trips() {
 
       <Modal open={Boolean(confirmId)} onClose={() => setConfirmId(null)} title="Delete this trip?">
         <p className="muted" style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 18 }}>
-          The itinerary, budget state and agent log for this trip will be permanently removed
+          The travel plan, budget state and agent log for this trip will be permanently removed
           from this device. This cannot be undone.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>

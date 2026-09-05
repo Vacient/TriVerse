@@ -29,7 +29,7 @@ function useNotifications() {
         out.push({
           id: `dis-${d.id}`,
           title: `Disruption resolved: ${d.flight}`,
-          sub: "Itinerary adapted automatically, net change $0",
+          sub: "Travel plan adapted automatically, net change $0",
           at: d.at,
           icon: "check",
           tone: "ok",
@@ -161,6 +161,9 @@ export default function Topbar({ crumb, onBurger }) {
                 </span>
               </button>
             ))}
+            {matches.length === 0 && (
+              <div className="search-pop-empty">No destinations match your search</div>
+            )}
           </div>
         )}
       </div>

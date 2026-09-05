@@ -50,7 +50,7 @@ function Agent() {
       refresh();
       setSimulating(false);
       if (event) {
-        toast(`Disruption detected on ${event.flight} — itinerary auto-adapted`, "warn");
+        toast(`Disruption detected on ${event.flight} — travel plan auto-adapted`, "warn");
       }
     }, 1200);
   };
@@ -109,7 +109,7 @@ function Agent() {
               <Icon name="sparkles" size={12} /> Live Resolution
             </span>
           </div>
-          <h2>Your itinerary has been automatically adapted.</h2>
+          <h2>Your travel plan has been automatically adapted.</h2>
           <p>
             Triverse AI detected a disruption and proactively reorganized your schedule to
             minimize impact and preserve your key preferences.

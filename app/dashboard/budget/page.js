@@ -134,7 +134,7 @@ function Budget() {
         </div>
         <div className="actions">
           <Link href={`/dashboard/itinerary?trip=${trip.id}`} className="btn btn-outline">
-            <Icon name="calendar" size={16} /> View itinerary
+            <Icon name="calendar" size={16} /> View travel plan
           </Link>
         </div>
       </div>
@@ -199,7 +199,7 @@ function Budget() {
       {/* ---------- Recommendations ---------- */}
       <h2 style={{ fontSize: 19, letterSpacing: "-0.01em", marginBottom: 4 }}>AI Recommendations</h2>
       <p className="muted" style={{ fontSize: 13.5, marginBottom: 16 }}>
-        Computed from your itinerary, hotel and transit choices. Applying one updates your
+        Computed from your travel plan, hotel and transit choices. Applying one updates your
         forecast instantly.
       </p>
 
