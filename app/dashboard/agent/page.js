@@ -30,7 +30,7 @@ function Agent() {
         </div>
         <h3>Atlas Agent is idle</h3>
         <p>Plan a trip and watch the agent go to work in real time.</p>
-        <Link href="/" className="btn btn-purple btn-lg">
+        <Link href="/trip-planner" className="btn btn-purple btn-lg">
           <Icon name="sparkles" size={17} /> Plan a trip
         </Link>
       </div>

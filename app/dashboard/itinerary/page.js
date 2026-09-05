@@ -127,7 +127,7 @@ function Itinerary() {
         </div>
         <h3>No itinerary yet</h3>
         <p>Plan a trip and Atlas Agent will lay out every day for you.</p>
-        <Link href="/" className="btn btn-purple btn-lg">
+        <Link href="/trip-planner" className="btn btn-purple btn-lg">
           <Icon name="sparkles" size={17} /> Plan a trip
         </Link>
       </div>

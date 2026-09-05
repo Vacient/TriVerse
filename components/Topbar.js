@@ -135,7 +135,7 @@ export default function Topbar({ crumb, onBurger }) {
             onBlur={() => setTimeout(() => setShowSearch(false), 150)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && matches.length) {
-                router.push(`/plan?to=${matches[0].id}`);
+                router.push(`/trip-planner?to=${matches[0].id}`);
                 setQ("");
                 setShowSearch(false);
               }
@@ -149,7 +149,7 @@ export default function Topbar({ crumb, onBurger }) {
               <button
                 key={d.id}
                 onMouseDown={() => {
-                  router.push(`/plan?to=${d.id}`);
+                  router.push(`/trip-planner?to=${d.id}`);
                   setQ("");
                   setShowSearch(false);
                 }}

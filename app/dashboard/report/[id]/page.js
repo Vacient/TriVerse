@@ -211,7 +211,7 @@ function Report() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-            <Link href="/" className="btn btn-purple">
+            <Link href="/trip-planner" className="btn btn-purple">
               <Icon name="sparkles" size={16} /> Retry a new trip
             </Link>
             <Link href="/dashboard/trips" className="btn btn-outline">

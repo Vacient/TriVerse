@@ -66,6 +66,28 @@ function Settings() {
     );
   };
 
+  // Read the picked image into a local data URL so it can be stored on-device
+  // and shown instantly in the preview and in the top-right profile menu.
+  const onPhotoPick = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast("Please choose an image file", "warn");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast("Image is too large — pick one under 2 MB", "warn");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPhoto(reader.result);
+      toast("Photo ready — save profile to apply", "info");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const doReset = () => {
     resetAll();
     clearSession();
@@ -238,19 +260,8 @@ function Settings() {
               </div>
             </div>
             <div className="field">
-              <label htmlFor="s-photo">Profile photo URL (optional)</label>
-              <div className="input-wrap">
-                <Icon name="camera" size={16} />
-                <input
-                  id="s-photo"
-                  className="input with-icon"
-                  type="url"
-                  placeholder="https://…/your-photo.jpg"
-                  value={photo}
-                  onChange={(e) => setPhoto(e.target.value)}
-                />
-              </div>
-              <div className="photo-preview">
+              <label>Profile photo (optional)</label>
+              <div className="photo-upload">
                 <span className={`avatar purple ${photo.trim() ? "has-photo" : ""}`}>
                   {photo.trim() ? (
                     <img src={photo.trim()} alt="Profile preview" className="avatar-photo" />
@@ -260,8 +271,29 @@ function Settings() {
                     <Icon name="user" size={18} />
                   )}
                 </span>
+                <div className="upload-actions">
+                  <label htmlFor="s-photo" className="btn btn-outline btn-sm upload-btn">
+                    <Icon name="camera" size={15} /> {photo.trim() ? "Change photo" : "Upload photo"}
+                  </label>
+                  {photo.trim() && (
+                    <button className="btn btn-outline btn-sm" onClick={() => setPhoto("")}>
+                      <Icon name="trash" size={14} /> Remove
+                    </button>
+                  )}
+                </div>
+                <input
+                  id="s-photo"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={onPhotoPick}
+                  aria-label="Upload profile photo"
+                />
+              </div>
+              <div className="photo-preview" style={{ marginTop: 10 }}>
                 <span className="muted" style={{ fontSize: 12.5 }}>
-                  Preview — used in the top-right profile menu. Leave empty to show your initial.
+                  Preview — used in the top-right profile menu. Upload a photo from your
+                  device, or leave it empty to show your initial.
                 </span>
               </div>
             </div>

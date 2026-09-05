@@ -95,7 +95,7 @@ function Overview() {
         </div>
         <h3>No trips yet</h3>
         <p>Let Atlas Agent plan your first journey — it takes under a minute.</p>
-        <Link href="/" className="btn btn-purple btn-lg">
+        <Link href="/trip-planner" className="btn btn-purple btn-lg">
           <Icon name="sparkles" size={17} /> Plan a trip
         </Link>
       </div>
@@ -181,7 +181,7 @@ function Overview() {
                 </div>
               </div>
               <div className="budget-stat">
-                <div className="k">FORECAST</div>
+                <div className="k">EXPECTED TOTAL</div>
                 <div className={`v mono ${trip.overrun > 0 ? "neg" : "pos"}`}>{money(trip.forecast)}</div>
               </div>
             </div>

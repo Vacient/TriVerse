@@ -61,7 +61,7 @@ function Budget() {
         </div>
         <h3>No trip to budget</h3>
         <p>Plan a trip first — Atlas Agent will build a budget you can tune here.</p>
-        <Link href="/" className="btn btn-purple btn-lg">
+        <Link href="/trip-planner" className="btn btn-purple btn-lg">
           <Icon name="sparkles" size={17} /> Plan a trip
         </Link>
       </div>

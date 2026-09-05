@@ -67,7 +67,7 @@ function Trips() {
           </p>
         </div>
         <div className="actions">
-          <Link href="/" className="btn btn-purple">
+          <Link href="/trip-planner" className="btn btn-purple">
             <Icon name="plus" size={16} /> New Trip
           </Link>
         </div>
@@ -80,13 +80,13 @@ function Trips() {
           </div>
           <h3>No trips yet</h3>
           <p>Plan your first trip and it will live here with its full report.</p>
-          <Link href="/" className="btn btn-purple btn-lg">
+          <Link href="/trip-planner" className="btn btn-purple btn-lg">
             <Icon name="sparkles" size={17} /> Plan a trip
           </Link>
         </div>
       ) : (
         <div className="trips-grid">
-          <Link href="/" className="new-trip">
+          <Link href="/trip-planner" className="new-trip">
             <span className="plus">
               <Icon name="plus" size={24} strokeWidth={2.4} />
             </span>

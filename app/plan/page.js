@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Icon from "@/components/Icons";
 import Scene from "@/components/Scene";
+import ScrollRail from "@/components/ScrollRail";
 import { Toaster } from "@/components/ui";
 import { getDestination, getOrigin } from "@/lib/data";
 import {
@@ -67,8 +68,8 @@ function PlanExperience() {
     }
     const to = searchParams.get("to");
     if (!base && !to) {
-      // No form was filled — send the user back to the planner on the home page.
-      router.replace("/");
+      // No form was filled — send the user back to the trip planner.
+      router.replace("/trip-planner");
       return;
     }
     if (to && !base) base = { ...defaultDraft(), destinationId: to };
@@ -336,6 +337,7 @@ function PlanExperience() {
 
   return (
     <div className="plan-wrap">
+      <ScrollRail />
       <Toaster />
       <div className="container">
         <div className="plan-head no-print">

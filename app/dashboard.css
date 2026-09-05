@@ -577,6 +577,33 @@
   margin-top: 10px;
 }
 
+.photo-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.photo-upload .upload-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.photo-upload .upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+}
+
+.photo-preview .avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 19px;
+}
+
 .ach-strip {
   display: flex;
   gap: 12px;
@@ -1813,6 +1840,47 @@
   .dash-search {
     width: auto;
     flex: 1;
+  }
+
+  .dash-search .search-pop {
+    /* Span the usable viewport width right below the sticky topbar so
+       suggestions stay readable on small screens instead of squeezing
+       into the narrow input column (which stacked words vertically). */
+    position: fixed;
+    top: 68px;
+    left: 16px;
+    right: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* AI recommendation cards: let the text use the full card width
+     instead of stacking one word per line in a squeezed column. */
+  .rec {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 14px;
+    padding: 16px;
+  }
+
+  .rec .r-main {
+    flex: 1 1 calc(100% - 62px);
+    min-width: 0;
+  }
+
+  .rec .r-main .t,
+  .rec .r-main .s {
+    overflow-wrap: break-word;
+  }
+
+  .rec .save {
+    margin-left: auto;
+  }
+
+  .rec .r-actions {
+    flex: 1 1 100%;
+    justify-content: flex-end;
   }
 
   .budget-stats {
