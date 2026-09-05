@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import BrandLogo from "./BrandLogo";
 import Icon from "./Icons";
-import { getSession, getTrips } from "@/lib/store";
+import { getTrips } from "@/lib/store";
 
 const NAV = [
   { href: "/dashboard/overview", label: "Overview", icon: "grid" },
@@ -17,11 +18,9 @@ const NAV = [
 
 export default function Sidebar({ open, onClose, activeTrip }) {
   const pathname = usePathname();
-  const [session, setSession] = useState(null);
   const [riskCount, setRiskCount] = useState(0);
 
   useEffect(() => {
-    setSession(getSession());
     const trips = getTrips();
     setRiskCount(
       trips.filter((t) => t.risk === "risk" && t.decisions.declined.length === 0).length
@@ -33,10 +32,7 @@ export default function Sidebar({ open, onClose, activeTrip }) {
       {open && <div className="side-backdrop" onClick={onClose} />}
       <aside className={`side ${open ? "open" : ""}`} aria-label="Main navigation">
         <Link href="/" className="brand" onClick={onClose}>
-          <span className="brand-mark">
-            <Icon name="plane" size={18} />
-          </span>
-          Triverse
+          <BrandLogo light height={26} />
         </Link>
 
         <nav className="side-nav">
@@ -59,18 +55,6 @@ export default function Sidebar({ open, onClose, activeTrip }) {
             );
           })}
         </nav>
-
-        <div className="side-foot">
-          <div className="side-user">
-            <span className="avatar purple">
-              {session?.name ? session.name.charAt(0).toUpperCase() : "G"}
-            </span>
-            <div className="who">
-              <div className="n">{session?.name || "Guest traveler"}</div>
-              <div className="e">{session?.email || "demo mode"}</div>
-            </div>
-          </div>
-        </div>
       </aside>
     </>
   );

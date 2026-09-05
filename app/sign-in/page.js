@@ -1,5 +1,6 @@
 "use client";
 
+import BrandLogo from "@/components/BrandLogo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -79,11 +80,8 @@ export default function SignInPage() {
       <Toaster />
       <div className="auth-card">
         <div className="auth-logo">
-          <Link href="/" className="brand">
-            <span className="brand-mark">
-              <Icon name="plane" size={18} />
-            </span>
-            Triverse AI
+          <Link href="/">
+            <BrandLogo height={42} showTagline />
           </Link>
         </div>
         <h1>Welcome back</h1>

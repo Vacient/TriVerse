@@ -7,6 +7,7 @@ import Icon from "@/components/Icons";
 import Scene from "@/components/Scene";
 import { Modal } from "@/components/ui";
 import { computeReport, fmtDate, money } from "@/lib/engine";
+import { placeLabel } from "@/lib/data";
 import { deleteTrip, duplicateTrip, getTrips, toast } from "@/lib/store";
 
 const STATUS = {
@@ -107,7 +108,7 @@ function Trips() {
                 <div className="t-body">
                   <div>
                     <div className="t-name">
-                      {t.dest.flag} {t.dest.city}, {t.dest.country}
+                      {t.dest.flag} {placeLabel(t.dest)}
                     </div>
                     <div className="t-dates">
                       {fmtDate(t.startDate)} • {t.days} days • {t.travelers} traveler

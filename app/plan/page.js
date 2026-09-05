@@ -6,9 +6,11 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Icon from "@/components/Icons";
 import Scene from "@/components/Scene";
 import { Toaster } from "@/components/ui";
-import { getDestination } from "@/lib/data";
+import { getDestination, getOrigin } from "@/lib/data";
 import {
   ACHIEVEMENTS,
+  FLIGHT_CLASSES,
+  ROOM_TYPES,
   agentSteps,
   computeAchievements,
   finalizePlan,
@@ -37,6 +39,8 @@ function PlanExperience() {
   const [step, setStep] = useState(0);
   const [flightPick, setFlightPick] = useState(null);
   const [hotelPick, setHotelPick] = useState(null);
+  const [flightClassId, setFlightClassId] = useState("economy");
+  const [roomTypeId, setRoomTypeId] = useState("standard");
   const [trip, setTrip] = useState(null);
   const [statusMsg, setStatusMsg] = useState("Initializing Atlas Agent…");
   const [perm, setPerm] = useState(0);
@@ -96,6 +100,7 @@ function PlanExperience() {
   }, [searchParams]);
 
   const dest = input ? getDestination(input.destinationId) : null;
+  const origin = input ? getOrigin(input.originId) : null;
   const steps = useMemo(
     () =>
       trip
@@ -117,6 +122,43 @@ function PlanExperience() {
     const base = draft.flightOptions.length * draft.hotelOptions.length * input.days;
     return base * (input.preferences.length || 1) * 14;
   }, [draft, input]);
+
+  // Flight class & room type pickers: reprice every option from the selected
+  // catalog entry and recompute budget fit so totals update live.
+  const adjFlights = useMemo(() => {
+    if (!draft) return [];
+    const cls = FLIGHT_CLASSES.find((c) => c.id === flightClassId) || FLIGHT_CLASSES[0];
+    const flightShare = draft.input.budget * 0.45;
+    return draft.flightOptions.map((f) => {
+      const price = Math.round(f.price * cls.mult);
+      return {
+        ...f,
+        cabin: cls.label,
+        classId: cls.id,
+        price,
+        fitsBudget: price * draft.input.travelers <= flightShare,
+      };
+    });
+  }, [draft, flightClassId]);
+
+  const adjHotels = useMemo(() => {
+    if (!draft) return [];
+    const rt = ROOM_TYPES.find((r) => r.id === roomTypeId) || ROOM_TYPES[0];
+    const hotelShare = draft.input.budget * 0.55;
+    return draft.hotelOptions.map((h) => {
+      const nightly = Math.round(h.nightly * rt.mult);
+      const total = nightly * h.nights * h.rooms;
+      return {
+        ...h,
+        roomType: rt.label,
+        beds: rt.beds,
+        capacity: rt.capacity,
+        nightly,
+        total,
+        fitsBudget: total <= hotelShare,
+      };
+    });
+  }, [draft, roomTypeId]);
 
   // 3 — animated permutation counter
   useEffect(() => {
@@ -167,12 +209,12 @@ function PlanExperience() {
   // 5 — finalize when the machine reaches the end
   useEffect(() => {
     if (!draft || flightPick === null || hotelPick === null || step < 6 || trip) return;
-    const fi = draft.flightOptions.findIndex((f) => f.id === flightPick);
-    const hi = draft.hotelOptions.findIndex((h) => h.id === hotelPick);
-    const built = finalizePlan(draft, {
-      flightIndex: fi === -1 ? 1 : fi,
-      hotelIndex: hi === -1 ? 1 : hi,
-    });
+    const fi = adjFlights.findIndex((f) => f.id === flightPick);
+    const hi = adjHotels.findIndex((h) => h.id === hotelPick);
+    const built = finalizePlan(
+      { ...draft, flightOptions: adjFlights, hotelOptions: adjHotels },
+      { flightIndex: fi === -1 ? 1 : fi, hotelIndex: hi === -1 ? 1 : hi }
+    );
 
     const stepsLog = agentSteps(built);
     stepsLog.forEach((s, i) =>
@@ -185,7 +227,7 @@ function PlanExperience() {
     );
 
     // flight decision adjustment
-    const valueFlight = draft.flightOptions[1];
+    const valueFlight = adjFlights[1];
     if (built.flight.price < valueFlight.price) {
       built.agentLog.push({
         at: Date.now(),
@@ -203,7 +245,7 @@ function PlanExperience() {
     }
 
     // hotel decision adjustment
-    const valueHotel = draft.hotelOptions[0];
+    const valueHotel = adjHotels[0];
     if (built.hotel.total < valueHotel.total) {
       built.agentLog.push({
         at: Date.now(),
@@ -231,15 +273,15 @@ function PlanExperience() {
 
     sessionStorage.removeItem("triverse:draft");
     setPerm(permTotal);
-  }, [draft, step, flightPick, hotelPick, trip]);
+  }, [draft, step, flightPick, hotelPick, trip, adjFlights, adjHotels]);
 
   const adjustments = useMemo(() => {
     if (!draft || flightPick === null || hotelPick === null) return [];
     const out = [];
-    const fp = draft.flightOptions.find((f) => f.id === flightPick);
-    const hp = draft.hotelOptions.find((h) => h.id === hotelPick);
-    if (fp && draft.flightOptions[1]) {
-      const delta = fp.price - draft.flightOptions[1].price;
+    const fp = adjFlights.find((f) => f.id === flightPick);
+    const hp = adjHotels.find((h) => h.id === hotelPick);
+    if (fp && adjFlights[1]) {
+      const delta = fp.price - adjFlights[1].price;
       out.push({
         who: `${fp.airline.name} ${fp.airline.prefix} ${fp.number}`,
         amt: Math.abs(delta),
@@ -247,8 +289,8 @@ function PlanExperience() {
         label: delta <= 0 ? "SAVED" : "ADDED",
       });
     }
-    if (hp && draft.hotelOptions[0]) {
-      const delta = hp.total - draft.hotelOptions[0].total;
+    if (hp && adjHotels[0]) {
+      const delta = hp.total - adjHotels[0].total;
       out.push({
         who: `${hp.name}`,
         amt: Math.abs(delta),
@@ -257,7 +299,7 @@ function PlanExperience() {
       });
     }
     return out;
-  }, [draft, flightPick, hotelPick]);
+  }, [draft, flightPick, hotelPick, adjFlights, adjHotels]);
 
   if (error) {
     return (
@@ -340,8 +382,25 @@ function PlanExperience() {
                   {draft.meta.origin.code} → {draft.meta.dest.code} • {draft.meta.origin.city} to{" "}
                   {draft.meta.dest.city}
                 </p>
+                <div className="class-row">
+                  <label className="class-label" htmlFor="flight-class">
+                    Flight class
+                  </label>
+                  <select
+                    id="flight-class"
+                    className="input select"
+                    value={flightClassId}
+                    onChange={(e) => setFlightClassId(e.target.value)}
+                  >
+                    {FLIGHT_CLASSES.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="choice-stack">
-                  {draft.flightOptions.map((f) => (
+                  {adjFlights.map((f) => (
                     <button
                       key={f.id}
                       className={`choice ${flightPick === f.id ? "selected" : ""}`}
@@ -353,12 +412,28 @@ function PlanExperience() {
                       <span className="cm">
                         <span className="t">
                           {f.airline.name} {f.airline.prefix} {f.number}
+                          {f.recommended && (
+                            <span className="pill pill-purple-soft" style={{ marginLeft: 8 }}>
+                              AI REC
+                            </span>
+                          )}
+                          {f.fitsBudget && (
+                            <span className="pill pill-green" style={{ marginLeft: 6 }}>
+                              FITS BUDGET
+                            </span>
+                          )}
                         </span>
                         <br />
                         <span className="s">
-                          {f.kind} • {f.perks} • ~
+                          {f.kind} · {f.cabin} · {f.layovers ? "1 stop" : "Direct"} · ~
                           {Math.floor(f.durationMin / 60)}h {f.durationMin % 60}m
                         </span>
+                        <br />
+                        <span className="s" style={{ color: "var(--purple)", fontWeight: 700 }}>
+                          {draft.meta.origin.code} → {f.airport} ({draft.meta.dest.city})
+                        </span>
+                        <br />
+                        <span className="s">{f.perks}</span>
                       </span>
                       <span className="cp">
                         {money(f.price)}
@@ -378,8 +453,25 @@ function PlanExperience() {
                 <p className="muted" style={{ fontSize: 13.5, marginBottom: 12 }}>
                   Scored against your preferences, budget and location quality.
                 </p>
+                <div className="class-row">
+                  <label className="class-label" htmlFor="room-type">
+                    Room type
+                  </label>
+                  <select
+                    id="room-type"
+                    className="input select"
+                    value={roomTypeId}
+                    onChange={(e) => setRoomTypeId(e.target.value)}
+                  >
+                    {ROOM_TYPES.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="choice-stack">
-                  {draft.hotelOptions.map((h) => (
+                  {adjHotels.map((h) => (
                     <button
                       key={h.id}
                       className={`choice ${hotelPick === h.id ? "selected" : ""}`}
@@ -391,15 +483,24 @@ function PlanExperience() {
                       <span className="cm">
                         <span className="t">
                           {h.name}
-                          {h.tier === "boutique" && (
+                          {h.recommended && (
                             <span className="pill pill-purple-soft" style={{ marginLeft: 8 }}>
                               AI REC
+                            </span>
+                          )}
+                          {h.fitsBudget && (
+                            <span className="pill pill-green" style={{ marginLeft: 6 }}>
+                              FITS BUDGET
                             </span>
                           )}
                         </span>
                         <br />
                         <span className="s">
-                          {h.area} • {money(h.nightly)}/night • {h.rooms} room{h.rooms > 1 ? "s" : ""}
+                          {h.roomType} · {h.beds} · sleeps {h.capacity}/room · {h.rooms} room{h.rooms > 1 ? "s" : ""}
+                        </span>
+                        <br />
+                        <span className="s">
+                          {h.area} · {money(h.nightly)}/night · {h.breakfast ? "Breakfast included" : "No breakfast"} · {h.pool ? "Pool available" : "No pool"}
                         </span>
                       </span>
                       <span className="cp">
@@ -544,7 +645,7 @@ function PlanExperience() {
               </div>
               <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", fontSize: 13.5, fontWeight: 600 }}>
                 <span>
-                  {input.originId.toUpperCase()} → {dest?.code}
+                  {origin?.code} ({origin?.city}) → {dest?.code} ({dest?.city})
                 </span>
                 <span className="muted">{input.days} days</span>
               </div>

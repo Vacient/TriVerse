@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Icon from "@/components/Icons";
 import { Modal } from "@/components/ui";
 import { ACHIEVEMENTS, computeAchievements } from "@/lib/engine";
-import { PREFERENCES } from "@/lib/data";
+import { PREFERENCES, placeLabel } from "@/lib/data";
 import {
   clearSession,
   getAchievements,
@@ -22,6 +22,7 @@ function Settings() {
   const [session, setSession] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [photo, setPhoto] = useState("");
   const [prefs, setPrefs] = useState([]);
   const [trips, setTrips] = useState([]);
   const [unlocked, setUnlocked] = useState({});
@@ -33,6 +34,7 @@ function Settings() {
     if (s) {
       setName(s.name || "");
       setEmail(s.email || "");
+      setPhoto(s.photo || "");
       setPrefs(s.preferences || []);
     }
     setTrips(getTrips());
@@ -53,7 +55,7 @@ function Settings() {
       toast("Enter a valid email address", "warn");
       return;
     }
-    const updated = updateUser({ name, email, preferences: prefs });
+    const updated = updateUser({ name, email, preferences: prefs, photo: photo.trim() || null });
     setSession(updated);
     toast("Profile saved", "success");
   };
@@ -71,22 +73,121 @@ function Settings() {
   };
 
   const exportData = () => {
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      user: session,
-      trips,
-      achievements: unlocked,
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
+    const now = new Date().toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric",
     });
+    const tripRows = trips
+      .map(
+        (t) => `
+        <tr>
+          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">
+            <strong>${placeLabel(t.dest)}</strong><br>
+            <span style="font-size:12px;color:#6b7280;">${t.days} days · ${t.travelers} traveler${t.travelers > 1 ? "s" : ""}</span>
+          </td>
+          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;">$${t.budget.toLocaleString()}</td>
+          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;">$${t.forecast.toLocaleString()}</td>
+          <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;">
+            <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;
+              background:${t.risk === "risk" ? "#fee2e2" : t.risk === "watch" ? "#fef3c7" : "#d1fae5"};
+              color:${t.risk === "risk" ? "#dc2626" : t.risk === "watch" ? "#d97706" : "#059669"};">
+              ${t.risk === "risk" ? "At Risk" : t.risk === "watch" ? "Watch" : "Safe"}
+            </span>
+          </td>
+        </tr>`
+      )
+      .join("");
+
+    const achRows = Object.entries(unlocked).length
+      ? Object.entries(unlocked)
+          .map(
+            ([id]) => {
+              const a = ACHIEVEMENTS.find((x) => x.id === id);
+              return a ? `<li style="padding:4px 0;font-size:13px;">${a.name} — ${a.desc}</li>` : "";
+            }
+          )
+          .join("")
+      : "<li style=\"padding:4px 0;font-size:13px;color:#9ca3af;\">No achievements yet — plan a trip to get started!</li>";
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Triverse — My Travel Data</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; padding: 40px 48px; max-width: 800px; margin: 0 auto; }
+  .header { border-bottom: 3px solid #6c4cf1; padding-bottom: 16px; margin-bottom: 28px; }
+  .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  .header .date { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  h2 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; color: #6c4cf1; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #d1d5db; font-size: 11px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.04em; }
+  .profile-card { background: #f9fafb; border-radius: 12px; padding: 18px 20px; font-size: 14px; line-height: 1.8; }
+  .profile-card strong { color: #6c4cf1; }
+  ul { list-style: none; padding: 0; }
+  .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; }
+  @media print {
+    body { padding: 20px 24px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Triverse AI — Travel Report</h1>
+  <div class="date">Exported on ${now}</div>
+</div>
+
+<h2>Traveler Profile</h2>
+<div class="profile-card">
+  <strong>Name:</strong> ${session?.name || "—"}<br>
+  <strong>Email:</strong> ${session?.email || "—"}<br>
+  <strong>Preferences:</strong> ${session?.preferences?.length ? session.preferences.join(", ") : "None set"}<br>
+  <strong>Total Trips:</strong> ${trips.length}
+</div>
+
+<h2>Trips (${trips.length})</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Destination</th>
+      <th style="text-align:right;">Budget</th>
+      <th style="text-align:right;">Forecast</th>
+      <th style="text-align:center;">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tripRows || '<tr><td colspan="4" style="padding:16px;text-align:center;color:#9ca3af;">No trips planned yet</td></tr>'}
+  </tbody>
+</table>
+
+<h2>Achievements</h2>
+<ul>${achRows}</ul>
+
+<div class="footer">
+  <p>Generated by Triverse AI — your autonomous travel agent. All data stored locally on your device.</p>
+  <p class="no-print" style="margin-top:8px;"><em>Tip: Use your browser's Print function (Ctrl+P) to save this as a PDF file.</em></p>
+</div>
+
+<script>
+  window.onload = function() {
+    setTimeout(function() { window.print(); }, 400);
+  };
+</script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "triverse-data.json";
-    a.click();
+    const w = window.open(url, "_blank", "width=900,height=700");
+    if (!w) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "triverse-travel-report.html";
+      a.click();
+    }
     URL.revokeObjectURL(url);
-    toast("Data exported as JSON", "success");
+    toast("Travel report ready — save as PDF from the print dialog", "success");
   };
 
   return (
@@ -134,6 +235,34 @@ function Settings() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+              </div>
+            </div>
+            <div className="field">
+              <label htmlFor="s-photo">Profile photo URL (optional)</label>
+              <div className="input-wrap">
+                <Icon name="camera" size={16} />
+                <input
+                  id="s-photo"
+                  className="input with-icon"
+                  type="url"
+                  placeholder="https://…/your-photo.jpg"
+                  value={photo}
+                  onChange={(e) => setPhoto(e.target.value)}
+                />
+              </div>
+              <div className="photo-preview">
+                <span className={`avatar purple ${photo.trim() ? "has-photo" : ""}`}>
+                  {photo.trim() ? (
+                    <img src={photo.trim()} alt="Profile preview" className="avatar-photo" />
+                  ) : name.trim() ? (
+                    name.trim().charAt(0).toUpperCase()
+                  ) : (
+                    <Icon name="user" size={18} />
+                  )}
+                </span>
+                <span className="muted" style={{ fontSize: 12.5 }}>
+                  Preview — used in the top-right profile menu. Leave empty to show your initial.
+                </span>
               </div>
             </div>
             <div className="field">

@@ -204,6 +204,11 @@ function Itinerary() {
               .filter((i) => !i.removed)
               .map((it) => {
                 const cat = CAT[it.category] || CAT.ACTIVITY;
+                const delay =
+                  it.flight && it.category === "TRANSIT" && it.title === "Flight Arrival"
+                    ? trip.flight.delayedByH
+                    : 0;
+                const end = it.time + (it.duration || 0);
                 return (
                   <div className="tl-item" key={it.id}>
                     <span className="tl-ic">
@@ -211,8 +216,8 @@ function Itinerary() {
                     </span>
                     <div className="tl-main">
                       <div className="tl-time">
-                        {timeStr(it.time, it.flight && it.category === "TRANSIT" && it.title === "Flight Arrival" ? trip.flight.delayedByH : 0)}
-                        {it.duration ? ` — ${Math.round(it.duration / 15) * 15}m` : ""}
+                        {timeStr(it.time, delay)}
+                        {it.duration ? ` – ${timeStr(end, delay)}` : ""}
                       </div>
                       <div className="tl-title">{it.title}</div>
                       <div className="tl-desc">{it.desc}</div>

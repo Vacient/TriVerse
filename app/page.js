@@ -3,14 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import BrandLogo from "@/components/BrandLogo";
 import Icon from "@/components/Icons";
+import Scene from "@/components/Scene";
 import { Toaster } from "@/components/ui";
 import {
   DEFAULT_PREFERENCES,
   DESTINATIONS,
-  ORIGINS,
+  LOCATIONS,
   PREFERENCES,
   getDestination,
+  placeLabel,
 } from "@/lib/data";
 import { money } from "@/lib/engine";
 import { getSession } from "@/lib/store";
@@ -40,6 +43,7 @@ export default function HomePage() {
     travelers: 1,
     preferences: [...DEFAULT_PREFERENCES],
   });
+  const [budgetError, setBudgetError] = useState(false);
 
   useEffect(() => {
     setSession(getSession());
@@ -74,6 +78,11 @@ export default function HomePage() {
   };
 
   const planTrip = () => {
+    if (form.budget < 100) {
+      setBudgetError(true);
+      document.getElementById("budget-input")?.focus();
+      return;
+    }
     const draft = {
       ...form,
       destinationId: dest.id,
@@ -91,10 +100,7 @@ export default function HomePage() {
       <nav className="nav">
         <div className="container nav-inner">
           <Link href="/" className="brand">
-            <span className="brand-mark">
-              <Icon name="plane" size={18} />
-            </span>
-            Triverse
+            <BrandLogo height={28} />
           </Link>
 
           <div className="nav-search" ref={searchRef}>
@@ -129,7 +135,7 @@ export default function HomePage() {
                   >
                     <span className="flag">{d.flag}</span>
                     <span>
-                      {d.city}, {d.country}
+                      {placeLabel(d)}
                       <span className="sub"> — {d.tagline}</span>
                     </span>
                   </button>
@@ -167,29 +173,29 @@ export default function HomePage() {
               <span className="spark">
                 <Icon name="sparkles" size={14} />
               </span>
-              INTRODUCING TRIVERSE AI 2.0
+              YOUR AI TRAVEL PLANNER
             </span>
             <h1 className="hero-title">
-              Plan less.
+              Plan your trip
               <br />
-              <span className="purple">Travel more.</span>
+              <span className="purple">in under a minute</span>
             </h1>
             <p className="hero-sub">
-              Your autonomous AI travel agent plans, tracks, and adapts your entire journey
-              around your budget. Experience travel without the logistical friction.
+              Tell us where you want to go, your budget, and what you love — our AI
+              handles flights, hotels, and a day-by-day itinerary. No spreadsheets, no stress.
             </p>
             <div className="feature-tags">
               <span className="chip">
-                <Icon name="plane" size={15} /> Real Flight Data
+                <Icon name="plane" size={15} /> Real Flight Prices
               </span>
               <span className="chip">
-                <Icon name="graph" size={15} /> Budget Optimization
+                <Icon name="graph" size={15} /> Stays on Budget
               </span>
               <span className="chip">
-                <Icon name="calendar" size={15} /> AI Itinerary
+                <Icon name="calendar" size={15} /> Daily Itinerary
               </span>
               <span className="chip">
-                <Icon name="pin" size={15} /> Live Tracking
+                <Icon name="pin" size={15} /> Trip Protection
               </span>
             </div>
           </div>
@@ -197,14 +203,16 @@ export default function HomePage() {
           {/* ---------- Planner card ---------- */}
           <div className="trip-card" id="planner">
             <div className="trip-card-photo">
-              <img className="scene" src={dest.image} alt={`${dest.city}, ${dest.country}`} />
+              {dest.image ? (
+                <img className="scene" src={dest.image} alt={placeLabel(dest)} />
+              ) : (
+                <Scene type={dest.scene || "city-night"} className="scene" />
+              )}
               <div className="overlay">
-                <h3>Welcome to Triverse AI</h3>
-                <div className="stars" aria-label="5 star service">
-                  <Icon name="star" size={13} strokeWidth={0} style={{ fill: "currentColor" }} />
-                  <Icon name="star" size={13} strokeWidth={0} style={{ fill: "currentColor" }} />
-                  <Icon name="star" size={13} strokeWidth={0} style={{ fill: "currentColor" }} />
-                </div>
+                <h3>Where to next?</h3>
+                <p style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>
+                  Pick a destination, set your budget, and go
+                </p>
               </div>
               <span className="trip-card-days">{form.days} Days</span>
             </div>
@@ -218,12 +226,21 @@ export default function HomePage() {
                       className="input select"
                       style={{ padding: "6px 30px 6px 10px", fontSize: 13, fontWeight: 700 }}
                       value={form.originId}
-                      onChange={(e) => setForm((f) => ({ ...f, originId: e.target.value }))}
+                      onChange={(e) => {
+                        const originId = e.target.value;
+                        setForm((f) => ({
+                          ...f,
+                          originId,
+                          // Keep both pickers valid: swap when the selection collides.
+                          destinationId:
+                            f.destinationId === originId ? f.originId : f.destinationId,
+                        }));
+                      }}
                       aria-label="Origin city"
                     >
-                      {ORIGINS.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.city}, {o.country}
+                      {LOCATIONS.filter((l) => l.id !== form.destinationId).map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.flag} {placeLabel(l)}
                         </option>
                       ))}
                     </select>
@@ -248,12 +265,20 @@ export default function HomePage() {
                         maxWidth: 170,
                       }}
                       value={form.destinationId}
-                      onChange={(e) => setForm((f) => ({ ...f, destinationId: e.target.value }))}
+                      onChange={(e) => {
+                        const destinationId = e.target.value;
+                        setForm((f) => ({
+                          ...f,
+                          destinationId,
+                          // Keep both pickers valid: swap when the selection collides.
+                          originId: f.originId === destinationId ? f.destinationId : f.originId,
+                        }));
+                      }}
                       aria-label="Destination city"
                     >
-                      {DESTINATIONS.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.city}, {d.country}
+                      {LOCATIONS.filter((l) => l.id !== form.originId).map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.flag} {placeLabel(l)}
                         </option>
                       ))}
                     </select>
@@ -283,18 +308,65 @@ export default function HomePage() {
               </div>
 
               <div className="field" style={{ marginBottom: 14 }}>
-                <label htmlFor="budget-range">Daily budget — {money(Math.round(form.budget / form.days))}/day</label>
+                <label htmlFor="budget-input">Total budget (USD)</label>
+                <div className="input-wrap" style={{ position: "relative" }}>
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "var(--muted)",
+                    }}
+                  >
+                    $
+                  </span>
+                  <input
+                    id="budget-input"
+                    className={`input${budgetError ? " invalid" : ""}`}
+                    style={{ paddingLeft: 30, fontWeight: 700 }}
+                    type="number"
+                    min={0}
+                    max={20000}
+                    step={10}
+                    value={form.budget === 0 ? "" : form.budget}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      const v = raw === "" ? 0 : Math.min(20000, Number(raw));
+                      setForm((f) => ({ ...f, budget: v }));
+                      if (budgetError && v >= 100) setBudgetError(false);
+                    }}
+                    aria-label="Total trip budget in USD"
+                  />
+                </div>
+                {budgetError && (
+                  <p className="field-error" style={{ marginTop: 6 }}>
+                    Budget must be at least $100 — adjust the amount to continue.
+                  </p>
+                )}
                 <input
-                  id="budget-range"
+                  id="budget-slider"
                   className="range"
                   type="range"
                   min={100}
-                  max={2000}
+                  max={20000}
                   step={10}
-                  value={form.budget}
-                  style={{ "--fill": `${((form.budget - 100) / 1900) * 100}%` }}
-                  onChange={(e) => setForm((f) => ({ ...f, budget: Number(e.target.value) }))}
+                  value={Math.max(100, form.budget)}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, budget: Number(e.target.value) }));
+                    if (budgetError) setBudgetError(false);
+                  }}
+                  style={{
+                    "--fill": `${Math.max(0, ((form.budget - 100) / (20000 - 100)) * 100)}%`,
+                    marginTop: 10,
+                  }}
+                  aria-label="Total trip budget slider"
                 />
+                <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>
+                  ≈ {money(Math.round(form.budget / form.days))} per day across {form.days} days
+                </p>
               </div>
 
               <div className="field" style={{ marginBottom: 14 }}>
@@ -360,15 +432,15 @@ export default function HomePage() {
               </div>
               <div className="pref-note">
                 {form.preferences.length >= 4
-                  ? "Maximum 4 signals — Atlas Agent weighs them by priority."
-                  : `Atlas Agent tailors every activity to your ${form.preferences.length} signal${form.preferences.length === 1 ? "" : "s"}.`}
+                  ? "Maximum 4 interests — we'll prioritize what matters most."
+                  : `We'll tailor your trip around ${form.preferences.length === 1 ? "your interest" : `your ${form.preferences.length} interests`}.`}
               </div>
 
               <button className="btn btn-dark btn-lg btn-block" onClick={planTrip}>
                 <span style={{ color: "#7fa7ff" }}>
                   <Icon name="sparkles" size={17} />
                 </span>
-                Plan my trip
+                Plan my trip — it's free
               </button>
             </div>
           </div>
@@ -378,31 +450,31 @@ export default function HomePage() {
       {/* ---------- How it works ---------- */}
       <section className="how">
         <div className="container">
-          <h2>Your agent does the heavy lifting</h2>
-          <p className="how-sub">Three steps from daydream to departure.</p>
+          <h2>How it works</h2>
+          <p className="how-sub">Three easy steps from idea to itinerary.</p>
           <div className="how-grid">
             <div className="how-card">
               <div className="n">1</div>
-              <h3>Tell Atlas what matters</h3>
+              <h3>Tell us your trip idea</h3>
               <p>
-                Pick a destination, a budget, and up to four preference signals. The agent
-                builds a profile of how you like to travel.
+                Pick where you want to go, how much you want to spend, and what you enjoy —
+                food, culture, shopping, nightlife, nature, or relaxation.
               </p>
             </div>
             <div className="how-card">
               <div className="n">2</div>
-              <h3>Watch it plan in real time</h3>
+              <h3>We build your plan</h3>
               <p>
-                Atlas searches flights, secures stays and structures a day-by-day itinerary —
-                then balances it against your budget.
+                Our AI searches real flights, finds the right hotel, and creates a day-by-day
+                schedule — all within your budget.
               </p>
             </div>
             <div className="how-card">
               <div className="n">3</div>
-              <h3>Travel with a safety net</h3>
+              <h3>Travel with confidence</h3>
               <p>
-                If a flight is delayed or spending drifts, the agent reworks your plan
-                automatically and preserves what you care about.
+                If a flight is delayed or prices change, your plan adjusts automatically.
+                You stay on budget and on schedule.
               </p>
             </div>
           </div>
@@ -412,7 +484,7 @@ export default function HomePage() {
       {/* ---------- Destinations ---------- */}
       <section className="dests">
         <div className="container">
-          <h2>Where will Atlas take you next?</h2>
+          <h2>Popular destinations</h2>
           <div className="dests-grid">
             {DESTINATIONS.map((d) => (
               <button
@@ -425,13 +497,16 @@ export default function HomePage() {
                     ?.scrollIntoView({ behavior: "smooth", block: "center" });
                 }}
               >
-                <img className="scene" src={d.image} alt={`${d.city}, ${d.country}`} loading="lazy" />
+                {d.image ? (
+                  <img className="scene" src={d.image} alt={placeLabel(d)} loading="lazy" />
+                ) : (
+                  <Scene type={d.scene || "city-night"} className="scene" />
+                )}
                 <div className="meta">
                   <div className="name">
-                    {d.flag} {d.city}, {d.country}
+                    {d.flag} {placeLabel(d)}
                   </div>
                   <div className="sub">{d.tagline}</div>
-                  <span className="price">from {money(d.flightPrice.RGN)}</span>
                 </div>
               </button>
             ))}
@@ -445,14 +520,11 @@ export default function HomePage() {
           <div className="footer-inner">
             <div>
               <div className="brand">
-                <span className="brand-mark">
-                  <Icon name="plane" size={18} />
-                </span>
-                Triverse
+                <BrandLogo light height={36} />
               </div>
               <p>
-                The autonomous AI travel agent. Plan less, travel more — with real-time
-                budget intelligence and live disruption protection.
+                Your AI travel companion. Plan trips, stay on budget, and travel
+                worry-free — all in one place.
               </p>
             </div>
             <div>

@@ -6,7 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Icon from "@/components/Icons";
 import { Modal, SegmentedBar } from "@/components/ui";
 import { ACHIEVEMENTS, computeAchievements, fmtDate, insightText, money, recomputeBudget, timeAgo } from "@/lib/engine";
-import { getTrips, saveTrip, toast } from "@/lib/store";
+import { getSession, getTrips, saveTrip, toast } from "@/lib/store";
 import useActiveTrip from "@/lib/useTrip";
 
 function Overview() {
@@ -16,10 +16,19 @@ function Overview() {
   const [editBudget, setEditBudget] = useState(0);
   const [editTravelers, setEditTravelers] = useState(1);
   const [trips, setTrips] = useState([]);
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     setTrips(getTrips());
   }, [trip]);
+
+  // Live session state so the profile avatar tracks name/photo changes.
+  useEffect(() => {
+    const load = () => setSession(getSession());
+    load();
+    window.addEventListener("triverse:session", load);
+    return () => window.removeEventListener("triverse:session", load);
+  }, []);
 
   const insight = trip ? insightText(trip) : null;
 
@@ -131,13 +140,18 @@ function Overview() {
           <span className="monitor-pill">
             <span className="pulse-dot" /> AGENT MONITORING
           </span>
-          <div className="avatar-stack">
-            <span className="avatar purple">
-              {trip.origin.city.charAt(0)}
+          {session && (
+            <span
+              className={`avatar purple ${session.photo ? "has-photo" : ""}`}
+              title={session.name}
+            >
+              {session.photo ? (
+                <img src={session.photo} alt={session.name} className="avatar-photo" />
+              ) : (
+                session.name.charAt(0).toUpperCase()
+              )}
             </span>
-            <span className="avatar">T</span>
-            <span className="avatar more">{trip.travelers}+</span>
-          </div>
+          )}
           <button className="btn btn-purple btn-sm" onClick={openEdit}>
             <Icon name="pencil" size={15} /> Edit Trip
           </button>
@@ -197,28 +211,54 @@ function Overview() {
                 <span className="dash-line">
                   <Icon name="plane" size={14} />
                 </span>
-                {trip.dest.code}
+                {trip.flight.legs ? trip.flight.legs.outbound.airport : trip.flight.airport || trip.dest.code}
               </div>
-              <div className="detail-row">
-                <span>Airline</span>
-                <b>
-                  {trip.flight.airline.name} {trip.flight.airline.prefix} {trip.flight.number}
-                </b>
-              </div>
-              <div className="detail-row">
-                <span>Route</span>
-                <b>
-                  {trip.flight.layovers ? "1 stop" : "Direct"} • ~{trip.flight.hours}h {trip.flight.minutes}m
-                </b>
-              </div>
-              {trip.flight.delayedByH > 0 && (
-                <div className="detail-row">
-                  <span>Status</span>
-                  <b style={{ color: "var(--red)" }}>Delayed {trip.flight.delayedByH}h — resolved</b>
+              <div className="spec-grid">
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="plane" size={13} /> Airline
+                  </span>
+                  <b className="v">
+                    {trip.flight.airline.name} {trip.flight.airline.prefix} {trip.flight.number}
+                  </b>
                 </div>
-              )}
-              <div className="detail-row total">
-                <span>Total</span>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="ticket" size={13} /> Cabin class
+                  </span>
+                  <b className="v">{trip.flight.cabin}</b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="compass" size={13} /> Route
+                  </span>
+                  <b className="v">
+                    {trip.origin.code} → {trip.flight.legs ? trip.flight.legs.outbound.airport : trip.dest.code} •{" "}
+                    {trip.flight.layovers ? "1 stop" : "Direct"} • ~{trip.flight.hours}h {trip.flight.minutes}m
+                  </b>
+                </div>
+                {trip.flight.legs && (
+                  <div className="spec">
+                    <span className="k">
+                      <Icon name="clock" size={13} /> Round-trip times
+                    </span>
+                    <b className="v">
+                      {trip.flight.legs.outbound.depart} → {trip.flight.legs.return.arrive} • return dep{" "}
+                      {trip.flight.legs.return.depart}
+                    </b>
+                  </div>
+                )}
+                {trip.flight.delayedByH > 0 && (
+                  <div className="spec">
+                    <span className="k">
+                      <Icon name="warn" size={13} /> Status
+                    </span>
+                    <b className="v" style={{ color: "var(--red)" }}>Delayed {trip.flight.delayedByH}h — resolved</b>
+                  </div>
+                )}
+              </div>
+              <div className="detail-total">
+                <span>Total (round-trip)</span>
                 <b>{money(trip.spend.flights)}</b>
               </div>
             </div>
@@ -231,27 +271,65 @@ function Overview() {
                 <h3>Accommodation</h3>
                 <span className="pill pill-purple-soft">AI REC</span>
               </div>
-              <div className="detail-row">
-                <span>Hotel</span>
-                <b>{trip.hotel.name}</b>
+              <div className="spec-grid">
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="home" size={13} /> Hotel
+                  </span>
+                  <b className="v">{trip.hotel.name}</b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="bed" size={13} /> Room type
+                  </span>
+                  <b className="v">{trip.hotel.roomType || "Standard Room"}</b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="ticket" size={13} /> Beds
+                  </span>
+                  <b className="v">{trip.hotel.beds || "1 Double Bed"}</b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="users" size={13} /> Guests
+                  </span>
+                  <b className="v">
+                    Sleeps {trip.hotel.capacity || 2}/room • {trip.hotel.rooms} room
+                    {trip.hotel.rooms > 1 ? "s" : ""}
+                  </b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="pin" size={13} /> Area
+                  </span>
+                  <b className="v">{trip.hotel.area}</b>
+                </div>
+                <div className="spec">
+                  <span className="k">
+                    <Icon name="calendar" size={13} /> Stay
+                  </span>
+                  <b className="v">
+                    {trip.hotel.nights} night{trip.hotel.nights > 1 ? "s" : ""} @ {money(trip.hotel.nightly)}/night
+                  </b>
+                </div>
               </div>
-              <div className="detail-row">
-                <span>Area</span>
-                <b>{trip.hotel.area}</b>
-              </div>
-              <div className="detail-row">
-                <span>Stay</span>
-                <b>
-                  {trip.hotel.nights} night{trip.hotel.nights > 1 ? "s" : ""} @ {money(trip.hotel.nightly)}/night
-                </b>
+              <div className="chips-row">
+                <span className={`info-chip ${trip.hotel.breakfast ? "good" : ""}`}>
+                  <Icon name="check" size={12} strokeWidth={3} /> Breakfast{" "}
+                  {trip.hotel.breakfast ? "included" : "not included"}
+                </span>
+                <span className={`info-chip ${trip.hotel.pool ? "good" : ""}`}>
+                  <Icon name="check" size={12} strokeWidth={3} /> Pool{" "}
+                  {trip.hotel.pool ? "available" : "not available"}
+                </span>
               </div>
               {trip.hotel.note && (
-                <div className="detail-row">
-                  <span>Agent note</span>
-                  <b style={{ color: "var(--green-deep)" }}>{trip.hotel.note}</b>
-                </div>
+                <p className="agent-note">
+                  <Icon name="sparkles" size={13} /> {trip.hotel.note}
+                </p>
               )}
-              <div className="detail-row total">
+              <div className="detail-total">
                 <span>Total</span>
                 <b>{money(trip.hotel.total)}</b>
               </div>

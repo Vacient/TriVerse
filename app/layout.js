@@ -3,7 +3,7 @@ import "./dashboard.css";
 import "./print.css";
 
 export const metadata = {
-  title: "Triverse AI — Plan less. Travel more.",
+  title: "TriVerse — AI-Powered Travel Agent | Plan less. Travel more.",
   description:
     "Your autonomous AI travel agent plans, tracks, and adapts your entire journey around your budget.",
 };

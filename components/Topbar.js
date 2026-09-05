@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Icon from "./Icons";
-import { DESTINATIONS } from "@/lib/data";
+import { DESTINATIONS, placeLabel } from "@/lib/data";
 import { timeAgo } from "@/lib/engine";
 import { clearSession, getSession, getTrips } from "@/lib/store";
 
@@ -62,16 +62,29 @@ export default function Topbar({ crumb, onBurger }) {
   const [bellOpen, setBellOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const wrapRef = useRef(null);
+  const wrapRef = useRef(null); // search box + results
+  const bellRef = useRef(null); // notifications dropdown
+  const userRef = useRef(null); // account dropdown
   const notifs = useNotifications();
 
   useEffect(() => {
-    setSession(getSession());
+    // Live session state so the avatar tracks name/photo changes from Settings.
+    const load = () => setSession(getSession());
+    load();
+    window.addEventListener("triverse:session", load);
+    return () => window.removeEventListener("triverse:session", load);
   }, []);
 
   useEffect(() => {
+    // Close dropdowns on outside press, but keep them open for clicks inside
+    // the panels themselves so Settings / Home / Sign out actually fire.
     const onClick = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+      const t = e.target;
+      if (
+        !wrapRef.current?.contains(t) &&
+        !bellRef.current?.contains(t) &&
+        !userRef.current?.contains(t)
+      ) {
         setBellOpen(false);
         setUserOpen(false);
       }
@@ -143,7 +156,7 @@ export default function Topbar({ crumb, onBurger }) {
               >
                 <span className="flag">{d.flag}</span>
                 <span>
-                  {d.city}, {d.country}
+                  {placeLabel(d)}
                   <span className="sub"> — {d.tagline}</span>
                 </span>
               </button>
@@ -152,7 +165,7 @@ export default function Topbar({ crumb, onBurger }) {
         )}
       </div>
 
-      <div className="dd">
+      <div className="dd" ref={bellRef}>
         <button
           className="icon-btn nav-bell"
           onClick={() => setBellOpen((v) => !v)}
@@ -190,24 +203,38 @@ export default function Topbar({ crumb, onBurger }) {
         )}
       </div>
 
-      <div className="dd">
+      <div className="dd" ref={userRef}>
         <button
-          className="avatar"
+          className={`avatar purple ${session?.photo ? "has-photo" : ""}`}
           onClick={() => setUserOpen((v) => !v)}
           aria-label="Account menu"
         >
-          {session?.name ? session.name.charAt(0).toUpperCase() : "G"}
+          {session?.photo ? (
+            <img src={session.photo} alt={session.name || "Profile"} className="avatar-photo" />
+          ) : session?.name ? (
+            session.name.charAt(0).toUpperCase()
+          ) : (
+            <Icon name="user" size={18} />
+          )}
         </button>
         {userOpen && (
           <div className="dd-panel">
-            <div className="dd-head">
-              {session?.name || "Guest traveler"}
+            <div className="dd-profile">
+              <span className={`avatar purple ${session?.photo ? "has-photo" : ""}`}>
+                {session?.photo ? (
+                  <img src={session.photo} alt={session.name || "Profile"} className="avatar-photo" />
+                ) : session?.name ? (
+                  session.name.charAt(0).toUpperCase()
+                ) : (
+                  <Icon name="user" size={18} />
+                )}
+              </span>
+              <div className="who">
+                <div className="n">{session?.name || "Guest traveler"}</div>
+                <div className="e">{session?.email || "Not signed in"}</div>
+              </div>
             </div>
-            {session && (
-              <p className="muted" style={{ padding: "0 10px 8px", fontSize: 12.5 }}>
-                {session.email}
-              </p>
-            )}
+            <div className="dd-sep" />
             <Link href="/dashboard/settings" className="dd-item" onClick={() => setUserOpen(false)}>
               <Icon name="gear" size={17} />
               <span>Settings</span>
