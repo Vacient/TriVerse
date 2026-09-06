@@ -2167,3 +2167,79 @@ body.rail-active::-webkit-scrollbar {
 .scroll-rail.dragging .scroll-rail-thumb {
   background: rgba(108, 76, 241, 0.8);
 }
+
+/* ---------- Floating scroll-down button (Atlas Agent page) ---------- */
+.scroll-down-btn {
+  position: fixed;
+  right: clamp(22px, 3vw, 32px);
+  bottom: clamp(24px, 4vh, 36px);
+  z-index: 61;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: #131a2e;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(19, 26, 46, 0.28);
+  opacity: 0;
+  transform: translateY(10px) scale(0.9);
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.scroll-down-btn.on {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scroll-down-btn:hover {
+  background: #6c4cf1;
+  box-shadow: 0 12px 30px rgba(108, 76, 241, 0.38);
+}
+
+.scroll-down-btn:active {
+  transform: scale(0.94);
+}
+
+.scroll-down-btn:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+}
+
+.scroll-down-btn svg {
+  display: block;
+  animation: scroll-btn-bob 2.2s ease-in-out infinite;
+}
+
+@keyframes scroll-btn-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+
+@media (max-width: 640px) {
+  .scroll-down-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-down-btn svg {
+    animation: none;
+  }
+}
