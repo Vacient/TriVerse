@@ -69,6 +69,20 @@ body {
   padding: 0;
 }
 
+/* Hide the native page scrollbar app-wide (scrolling still works) */
+html,
+body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -2111,61 +2125,6 @@ img.scene {
   .auth-card {
     padding: 28px 22px;
   }
-}
-
-/* ---- Custom always-visible scroll rail (Atlas Agent plan page) ----
-   Replaces the native scrollbar while planning: a slim Telegram-style rail
-   that stays on the right side for the whole page, down to the end. */
-body.rail-active {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-body.rail-active::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
-}
-
-.scroll-rail {
-  position: fixed;
-  top: 10px;
-  bottom: 10px;
-  right: max(10px, calc((100vw - 1060px) / 2 - 34px));
-  width: 7px;
-  z-index: 60;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-.scroll-rail.on {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.scroll-rail-track {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: rgba(19, 26, 46, 0.07);
-}
-
-.scroll-rail-thumb {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  border-radius: 999px;
-  background: rgba(19, 26, 46, 0.35);
-  min-height: 28px;
-  transition: background 0.15s ease;
-}
-
-.scroll-rail:hover .scroll-rail-thumb,
-.scroll-rail.dragging .scroll-rail-thumb {
-  background: rgba(108, 76, 241, 0.8);
 }
 
 /* ---------- Floating scroll-down button (Atlas Agent page) ---------- */

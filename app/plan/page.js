@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Icon from "@/components/Icons";
 import Scene from "@/components/Scene";
-import ScrollRail from "@/components/ScrollRail";
 import ScrollDownButton from "@/components/ScrollDownButton";
 import { Toaster } from "@/components/ui";
 import { getDestination, getOrigin } from "@/lib/data";
@@ -338,7 +337,6 @@ function PlanExperience() {
 
   return (
     <div className="plan-wrap">
-      <ScrollRail />
       <ScrollDownButton />
       <Toaster />
       <div className="container">
